@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="907e561e-25c2-4a2b-a347-4f3cb2e40c60" name="warogast.hucompute.org">
+        <fileTransfer accessType="SFTP" host="warogast.hucompute.org" port="22" sshConfigId="5f8b5081-e4da-41d3-98ec-bd0b58d0e31d" sshConfig="s5935481@warogast.hucompute.org:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
