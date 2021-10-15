@@ -355,6 +355,12 @@ def brandenburg_crawler_sp(make_directories: bool = True,
 
 def hamburg_crawler(make_directories:bool = True,
                     save_path: str = "/vol/s5935481/parlamentary/hamburg"):
+    """
+    Function for crawling plenary minutes from parliament of hamburg
+    :param make_directories:
+    :param save_path:
+    :return:
+    """
 
     if make_directories:
         try:
@@ -406,6 +412,7 @@ def hamburg_crawler(make_directories:bool = True,
         electoral_term = "electoral_term_" + link.split("_")[1]
         try:
             pathlib.Path(save_path + "/pdf/" + electoral_term).mkdir(parents=True, exist_ok=False)
+            pathlib.Path(save_path + "/txt/" + electoral_term).mkdir(parents=True, exist_ok=False)
         except:
             pass
         response = requests.get(link)
