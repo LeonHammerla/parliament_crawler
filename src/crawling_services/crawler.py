@@ -1,6 +1,5 @@
 import argparse
-
-
+import pickle
 import urllib3
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
@@ -20,7 +19,7 @@ import textract
 import codecs
 import time
 from selenium.webdriver.support import expected_conditions as EC
-
+from selenium.webdriver.common.proxy import Proxy, ProxyType
 
 
 
@@ -68,6 +67,40 @@ def test():
                 print(new_page)
                 pages.add(new_page)
     return pages
+
+
+def get_proxies(proxy_path: str = "/vol/s5935481/parlamentary/BIN/proxy.txt") -> [str]:
+    """
+    Function for getting a list of working proxies.
+    :param proxy_path:
+    :return:
+    """
+    proxy_strings = []
+    with open(proxy_path, "r") as f:
+        for i in f:
+            proxy_strings.append(i.strip())
+
+    return proxy_strings
+
+def get_proxy_driver(proxy_ip_port: str, chrome_options: Options,
+                     driver_path: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver") -> webdriver.Chrome:
+    """
+    Function to create a webdriver instance with a proxy.
+    :param proxy_ip_port:
+    :param chrome_options:
+    :param driver_path:
+    :return:
+    """
+    proxy = Proxy()
+    proxy.proxy_type = ProxyType.MANUAL
+    proxy.http_proxy = proxy_ip_port
+    proxy.ssl_proxy = proxy_ip_port
+
+    capabilities = webdriver.DesiredCapabilities.CHROME
+    proxy.add_to_capabilities(capabilities)
+
+    driver = webdriver.Chrome(driver_path, options=chrome_options, desired_capabilities=capabilities)
+    return driver
 
 def brandenburg_proc_mp(config: list, make_directories: bool = True):
     """
@@ -353,7 +386,7 @@ def brandenburg_crawler_sp(make_directories: bool = True,
 
 
 
-def hamburg_crawler(make_directories:bool = True,
+def hamburg_crawler_depricated(make_directories:bool = True,
                     save_path: str = "/vol/s5935481/parlamentary/hamburg"):
     """
     Function for crawling plenary minutes from parliament of hamburg
@@ -451,6 +484,198 @@ def hamburg_crawler(make_directories:bool = True,
     return
 
 
+def hamburg_crawler(make_directories:bool = True,
+                    save_path: str = "/vol/s5935481/parlamentary/hamburg",
+                    driver_path: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver",
+                    proxy_path : str = "/vol/s5935481/parlamentary/BIN/proxy.txt"):
+    """
+    Function for crawling plenary minutes from parliament of hamburg
+    :param make_directories:
+    :param save_path:
+    :return:
+    """
+    proxies = get_proxies(proxy_path=proxy_path)
+
+    if make_directories:
+        try:
+            pathlib.Path(save_path).mkdir(parents=True, exist_ok=False)
+        except:
+            print(save_path + " already exists...")
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument("--enable-javascript")
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    url = "https://www.buergerschaft-hh.de/parldok/dokumentennummer"
+    for prox in proxies:
+        try:
+            driver = get_proxy_driver(prox, chrome_options, driver_path)
+            driver.set_page_load_timeout(5)
+            driver.get(url)
+            time.sleep(2)
+            break
+        except:
+            pass
+
+    """                                      /html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[1]/td[2]/input[2]                       
+    checkbox = driver.find_element_by_xpath("/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[1]/td[2]/input[2]")
+    driver.execute_script("arguments[0].setAttribute('checked', 'true')", checkbox)
+    """
+    try:
+        cooki_button = driver.find_element_by_xpath("/html/body/div[1]/div/div/a").click()
+        time.sleep(1)
+    except:
+        pass
+
+    select_item = Select(driver.find_element_by_xpath("/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[2]/td[2]/select"))
+    election_periods = select_item.options
+    election_periods = [i.text for i in election_periods]
+    election_periods = list(reversed(election_periods))
+    link_dict = dict()
+
+    driver.quit()
+    if make_directories:
+        try:
+            pathlib.Path(save_path + "/pdf").mkdir(parents=True, exist_ok=False)
+            pathlib.Path(save_path + "/txt").mkdir(parents=True, exist_ok=False)
+        except:
+            print(save_path + " already exists...")
+    avail_prox = proxies[:]
+    avail_count = 0
+    for ep in tqdm(range(0, len(election_periods)), desc="Extracting Download Links: "):
+        period = election_periods[ep]
+        if make_directories:
+            try:
+                pathlib.Path(save_path + "/pdf/" + period).mkdir(parents=True, exist_ok=False)
+                pathlib.Path(save_path + "/txt/" + period).mkdir(parents=True, exist_ok=False)
+            except:
+                print(save_path + " already exists...")
+
+
+        for pid in range(avail_count, len(avail_prox) + avail_count):
+            try:
+                driver = get_proxy_driver(avail_prox[pid % len(avail_prox)], chrome_options, driver_path)
+                driver.set_page_load_timeout(5)
+                driver.get(url)
+                time.sleep(2)
+                checkbox = driver.find_element_by_xpath(
+                    "/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[1]/td[2]/input[2]")
+                print("Using: {}".format(avail_prox[pid % len(avail_prox)]))
+                avail_count += 1
+                break
+            except:
+                avail_count += 1
+
+        try:
+            cooki_button = driver.find_element_by_xpath("/html/body/div[1]/div/div/a").click()
+            time.sleep(1)
+        except:
+            pass
+        checkbox = driver.find_element_by_xpath(
+            "/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[1]/td[2]/input[2]")
+        driver.execute_script("arguments[0].setAttribute('checked', 'true')", checkbox)
+        select_item = Select(
+            driver.find_element_by_xpath("/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[2]/td[2]/select"))
+        select_item.select_by_visible_text(period)
+        doc_number = 1
+        pages = set()
+        running = True
+        pbar = tqdm(total=100, leave=False)
+        while running:
+            c = 0
+            query = "arguments[0].setAttribute('value', '{}')".format(str(doc_number))
+            doc_selector = driver.find_element_by_xpath(
+                "/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[3]/td[2]/div[1]/input")
+            driver.execute_script(query, doc_selector)
+            button = driver.find_element_by_xpath("/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[4]/td[2]/input")
+            button.submit()
+            time.sleep(3)
+            source = driver.page_source
+            soup = BeautifulSoup(source, 'html.parser')
+            pattern = re.compile("pdf")
+            for link in soup.find_all("a", href=pattern):
+                if "href" in link.attrs:
+                    if link.attrs["href"] not in pages:
+                        new_page = link.attrs["href"]
+                        pages.add(new_page)
+                        c += 1
+            if c == 0:
+                running = False
+            else:
+                doc_number += 1
+                                                      # /html/body/div[4]/div[2]/div/input
+            back_button = driver.find_element_by_xpath("/html/body/div[4]/div[2]/div/input")
+            driver.execute_script("arguments[0].click();", back_button)
+            time.sleep(3)
+            pbar.update(1)
+        pbar.close()
+        link_dict[period] = ["https://www.buergerschaft-hh.de" + link for link in list(pages)]
+        driver.quit()
+
+    with open(save_path + "/all_links.pickle", "wb") as handle:
+        pickle.dump(link_dict, handle)
+
+    good, bad = 0, 0
+
+    exceptions = []
+    name_dict = dict()
+    indx = 0
+    for key in tqdm(link_dict, desc="Downloading files: "):
+        file_names = []
+        for link in link_dict[key]:
+            prox_id = 0
+            try:
+                while_count = 0
+                while True:
+                    if while_count > len(proxies):
+                        raise ValueError('No proxy works for link')
+                    try:
+                        response = requests.get(link, proxies={'http': proxies[prox_id % len(proxies)], 'https': proxies[prox_id % len(proxies)]}, timeout=2)
+                        break
+                    except:
+                        prox_id += 1
+                file_name = save_path + "/pdf/" + key + "/" + link.split("/")[-1]
+                with open(file_name, 'wb') as f:
+                    f.write(response.content)
+                file_names.append(file_name)
+                good += 1
+            except Exception as e:
+                exceptions.append(str(e))
+                bad += 1
+            prox_id += 1
+        name_dict[key] = file_names
+        indx += 1
+
+    print("completed requests: {}; failed requests: {}\n".format(good, bad))
+    print("Exceptions occured: {}\n".format(",".join(list(set(exceptions)))))
+
+    good, bad = 0, 0
+    exceptions = []
+    for key in tqdm(name_dict, desc="Converting from PDF to TXT: "):
+        for file_name in name_dict[key]:
+            try:
+                text = textract.process(file_name)
+                text = text.decode("utf-8").split("\n")
+                with codecs.open(file_name.replace("pdf", "txt"),
+                                 "w", "utf-8") as f:
+                    for line in text:
+                        f.write(line + "\n")
+                good += 1
+            except Exception as e:
+                exceptions.append(str(e))
+                bad += 1
+        print("completed conversions: {}; failed conversions: {}\n".format(good, bad))
+        print("Exceptions occured: {}\n".format(",".join(list(set(exceptions)))))
+    driver.quit()
+    return
+
+
+
+
+
+def bayern_crawler(make_directories:bool = True,
+                    save_path: str = "/vol/s5935481/parlamentary/bayern"):
+    pass
 
 def main(args):
     if args.brandenburg:
@@ -459,11 +684,17 @@ def main(args):
         hamburg_crawler()
 
 if __name__ == "__main__":
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--brandenburg', action='store_true',
                         help='Do you want to crawl documents for brandenburg?')
     parser.add_argument('--hamburg', action='store_true',
                         help='Do you want to crawl documents for hamburg?')
     args = parser.parse_args()
-
+    
     main(args)
+    """
+    path = "/vol/team/hammerla/parlamentary/hamburg"
+    path2= "/media/leon/GameSSD/parlamentary/hamburg"
+    drver_path = "/usr/local/bin/chromedriver"
+    hamburg_crawler()
