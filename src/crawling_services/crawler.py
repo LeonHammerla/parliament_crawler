@@ -502,7 +502,13 @@ def hamburg_crawler(make_directories:bool = True,
         except:
             print(save_path + " already exists...")
     chrome_options = Options()
-    chrome_options.add_argument('--headless')
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option('useAutomationExtension', False)
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("window-size=1920,1080")
+    chrome_options.add_argument("--dns-prefetch-disable")
+
+    chrome_options.headless = True
     chrome_options.add_argument("--enable-javascript")
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
@@ -560,6 +566,11 @@ def hamburg_crawler(make_directories:bool = True,
                 time.sleep(2)
                 checkbox = driver.find_element_by_xpath(
                     "/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[1]/td[2]/input[2]")
+                driver.execute_script("arguments[0].setAttribute('checked', 'true')", checkbox)
+                select_item = Select(
+                    driver.find_element_by_xpath(
+                        "/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[2]/td[2]/select"))
+                select_item.select_by_visible_text(period)
                 print("Using: {}".format(avail_prox[pid % len(avail_prox)]))
                 avail_count += 1
                 break
@@ -571,43 +582,68 @@ def hamburg_crawler(make_directories:bool = True,
             time.sleep(1)
         except:
             pass
-        checkbox = driver.find_element_by_xpath(
-            "/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[1]/td[2]/input[2]")
-        driver.execute_script("arguments[0].setAttribute('checked', 'true')", checkbox)
-        select_item = Select(
-            driver.find_element_by_xpath("/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[2]/td[2]/select"))
-        select_item.select_by_visible_text(period)
+
         doc_number = 1
         pages = set()
         running = True
         pbar = tqdm(total=100, leave=False)
         while running:
-            c = 0
-            query = "arguments[0].setAttribute('value', '{}')".format(str(doc_number))
-            doc_selector = driver.find_element_by_xpath(
-                "/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[3]/td[2]/div[1]/input")
-            driver.execute_script(query, doc_selector)
-            button = driver.find_element_by_xpath("/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[4]/td[2]/input")
-            button.submit()
-            time.sleep(3)
-            source = driver.page_source
-            soup = BeautifulSoup(source, 'html.parser')
-            pattern = re.compile("pdf")
-            for link in soup.find_all("a", href=pattern):
-                if "href" in link.attrs:
-                    if link.attrs["href"] not in pages:
-                        new_page = link.attrs["href"]
-                        pages.add(new_page)
-                        c += 1
-            if c == 0:
-                running = False
-            else:
-                doc_number += 1
-                                                      # /html/body/div[4]/div[2]/div/input
-            back_button = driver.find_element_by_xpath("/html/body/div[4]/div[2]/div/input")
-            driver.execute_script("arguments[0].click();", back_button)
-            time.sleep(3)
-            pbar.update(1)
+            try:
+                c = 0
+                query = "arguments[0].setAttribute('value', '{}')".format(str(doc_number))
+                doc_selector = driver.find_element_by_xpath(
+                    "/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[3]/td[2]/div[1]/input")
+                driver.execute_script(query, doc_selector)
+                button = driver.find_element_by_xpath("/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[4]/td[2]/input")
+                button.submit()
+                time.sleep(3)
+                source = driver.page_source
+                soup = BeautifulSoup(source, 'html.parser')
+                pattern = re.compile("pdf")
+                for link in soup.find_all("a", href=pattern):
+                    if "href" in link.attrs:
+                        if link.attrs["href"] not in pages:
+                            new_page = link.attrs["href"]
+                            pages.add(new_page)
+                            c += 1
+                if c == 0:
+                    running = False
+                else:
+                    doc_number += 1
+                                                          # /html/body/div[4]/div[2]/div/input
+                back_button = driver.find_element_by_xpath("/html/body/div[4]/div[2]/div/input")
+                driver.execute_script("arguments[0].click();", back_button)
+                time.sleep(3)
+                pbar.update(1)
+            except:
+                for pid in range(avail_count, len(avail_prox) + avail_count):
+                    try:
+                        driver = get_proxy_driver(avail_prox[pid % len(avail_prox)], chrome_options, driver_path)
+                        driver.set_page_load_timeout(5)
+                        driver.get(url)
+                        time.sleep(2)
+                        checkbox = driver.find_element_by_xpath(
+                            "/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[1]/td[2]/input[2]")
+                        driver.execute_script("arguments[0].setAttribute('checked', 'true')", checkbox)
+                        select_item = Select(
+                            driver.find_element_by_xpath(
+                                "/html/body/div[4]/div[2]/div/form/fieldset/table/tbody/tr[2]/td[2]/select"))
+                        select_item.select_by_visible_text(period)
+                        print("Using: {}".format(avail_prox[pid % len(avail_prox)]))
+                        avail_count += 1
+                        break
+                    except:
+                        avail_count += 1
+                    try:
+                        cooki_button = driver.find_element_by_xpath("/html/body/div[1]/div/div/a").click()
+                        time.sleep(1)
+                    except:
+                        pass
+
+
+
+
+
         pbar.close()
         link_dict[period] = ["https://www.buergerschaft-hh.de" + link for link in list(pages)]
         driver.quit()
