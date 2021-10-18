@@ -20,7 +20,7 @@ import codecs
 import time
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.proxy import Proxy, ProxyType
-
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 
@@ -710,8 +710,102 @@ def hamburg_crawler(make_directories:bool = True,
 
 
 def bayern_crawler(make_directories:bool = True,
-                    save_path: str = "/vol/s5935481/parlamentary/bayern"):
-    pass
+                   save_path: str = "/vol/s5935481/parlamentary/bayern",
+                   chrome_driver: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver"):
+    """
+    Crawler for bayern-homepage
+    :param make_directories:
+    :param save_path:
+    :param chrome_driver:
+    :return:
+    """
+
+    if make_directories:
+        try:
+            pathlib.Path(save_path).mkdir(parents=True, exist_ok=False)
+        except:
+            print(save_path + "/pdf" + " already exists...")
+        try:
+            pathlib.Path(save_path + "/pdf").mkdir(parents=True, exist_ok=False)
+        except:
+            print(save_path + " already exists...")
+        try:
+            pathlib.Path(save_path + "/txt").mkdir(parents=True, exist_ok=False)
+        except:
+            print(save_path + "/txt" + " already exists...")
+
+
+
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--window-size=1920x1080")
+    chrome_options.add_argument("--disable-notifications")
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--verbose')
+    chrome_options.add_experimental_option("prefs", {
+        #"download.default_directory": "/home/leon/Downloads",
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "safebrowsing_for_trusted_sources_enabled": False,
+        "safebrowsing.enabled": False
+    })
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.add_argument('--disable-software-rasterizer')
+
+    # initialize driver object and change the <path_to_chrome_driver> depending on your directory where your chromedriver should be
+    driver = webdriver.Chrome(options=chrome_options, executable_path=chrome_driver)
+
+    # change the <path_to_place_downloaded_file> to your directory where you would like to place the downloaded file
+    download_dir = save_path
+
+    driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
+    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_dir}}
+    driver.execute("send_command", params)
+
+
+    driver.get("https://www.bayern.landtag.de/webangebot2/webangebot/protokolle;jsessionid=BCBE10883F579A92447E7C06D2DF0E90?execution=e1s1#")
+
+    election_periods_select_item = Select(driver.find_element_by_xpath("/html/body/div[1]/main/div[2]/div[2]/div[2]/div[1]/div/div/div[1]/div/div[1]/div[4]/form/div/div[2]/div[2]/span/select[1]"))
+    election_periods = [option.text for option in election_periods_select_item.options]
+    election_periods = list(reversed(election_periods))
+    driver.quit()
+    for period in tqdm(election_periods):
+        if os.path.isdir(save_path + "/pdf/" + period):
+            pass
+        else:
+            if make_directories:
+                try:
+                    pathlib.Path(save_path + "/pdf/" + period).mkdir(parents=True, exist_ok=False)
+                    pathlib.Path(save_path + "/txt/" + period).mkdir(parents=True, exist_ok=False)
+                except:
+                    print(save_path + " already exists...")
+
+            driver = webdriver.Chrome(options=chrome_options, executable_path=chrome_driver)
+            download_dir = save_path + "/pdf/" + period
+            driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
+            params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_dir}}
+            driver.execute("send_command", params)
+            driver.get(
+                "https://www.bayern.landtag.de/webangebot2/webangebot/protokolle;jsessionid=BCBE10883F579A92447E7C06D2DF0E90?execution=e1s1#")
+
+            election_periods_select_item = Select(driver.find_element_by_xpath(
+                "/html/body/div[1]/main/div[2]/div[2]/div[2]/div[1]/div/div/div[1]/div/div[1]/div[4]/form/div/div[2]/div[2]/span/select[1]"))
+            election_periods_select_item.select_by_visible_text(period)
+            confirm = driver.find_element_by_xpath("/html/body/div[1]/main/div[2]/div[2]/div[2]/div[1]/div/div/div[1]/div/div[1]/div[4]/form/div/div[2]/div[2]/input[1]")
+            confirm.click()
+            time.sleep(3)
+            body = driver.find_element_by_xpath("/html/body/div[1]/main/div[2]/div[2]/div[2]/div[1]/div/div/div[1]/div/div[1]/div[4]/form/div/div[3]/div/table/tbody")
+            len_idx = len(body.find_elements_by_xpath("//a[@title='Protokoll als PDF-Datei']"))
+            for idx in tqdm(range(0, len_idx), desc="Downloading {}".format(period)):
+                body = driver.find_element_by_xpath(
+                    "/html/body/div[1]/main/div[2]/div[2]/div[2]/div[1]/div/div/div[1]/div/div[1]/div[4]/form/div/div[3]/div/table/tbody")
+                button = body.find_elements_by_xpath("//a[@title='Protokoll als PDF-Datei']")[idx]
+                button.click()
+                button.submit()
+            driver.quit()
+
+    return
+
 
 def main(args):
     if args.brandenburg:
@@ -733,4 +827,4 @@ if __name__ == "__main__":
     path = "/vol/team/hammerla/parlamentary/hamburg"
     path2= "/media/leon/GameSSD/parlamentary/hamburg"
     drver_path = "/usr/local/bin/chromedriver"
-    hamburg_crawler()
+    bayern_crawler()
