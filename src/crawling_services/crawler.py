@@ -713,7 +713,7 @@ def bayern_crawler(make_directories:bool = True,
                    save_path: str = "/vol/s5935481/parlamentary/bayern",
                    chrome_driver: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver"):
     """
-    Crawler for bayern-homepage
+
     :param make_directories:
     :param save_path:
     :param chrome_driver:
@@ -807,6 +807,60 @@ def bayern_crawler(make_directories:bool = True,
     return
 
 
+
+
+def sachsen_anhalt_crawler(make_directories:bool = True,
+                   save_path: str = "/vol/s5935481/parlamentary/bayern",
+                   chrome_driver: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver"):
+
+    chrome_options = Options()
+    #chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    #chrome_options.add_experimental_option('useAutomationExtension', False)
+    #chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("window-size=1920,1080")
+    chrome_options.add_argument("--dns-prefetch-disable")
+
+    #chrome_options.headless = True
+    chrome_options.add_argument("--enable-javascript")
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    url = "https://padoka.landtag.sachsen-anhalt.de/portala/browse.tt.html"
+    driver = webdriver.Chrome(chrome_driver, options=chrome_options)
+
+    driver.get(url)
+    wait = WebDriverWait(driver, 10)
+    document_select = driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[1]/div/div/div/nav/a[2]")
+    document_select.click()
+
+
+    #button = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[2]/div/div/div[2]/button")))
+    #button.click()
+    time.sleep(1)
+    more_option_button = driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[2]/div/div/div[2]/button")
+    more_option_button.click()
+    time.sleep(1)
+
+    document_type = Select(driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[4]/div/div/div[1]/div/div[1]/div/div/select"))
+    document_type.select_by_visible_text("Plenarprotokoll")
+    time.sleep(1)
+    #select_election_period = driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[5]/div[2]/div/div[1]/div/div[2]/span/div/ul/li[1]/a/label/input")
+    select_election_period = Select(driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[5]/div[2]/div/div[1]/div/div[2]/span/select"))
+    print([i.text for i in select_election_period.options])
+    print([i.text for i in select_election_period.all_selected_options])
+    for i in select_election_period.options:
+        select_election_period.select_by_visible_text(i.text)
+    print("===")
+    print([i.text for i in select_election_period.all_selected_options])
+    time.sleep(1)
+    confirm = driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[2]/div/div/div[3]/button")
+    confirm.click()
+    time.sleep(10)
+
+    time.sleep(300)
+    driver.quit()
+
+
+
 def main(args):
     if args.brandenburg:
         brandenburg_crawler_sp()
@@ -827,4 +881,4 @@ if __name__ == "__main__":
     path = "/vol/team/hammerla/parlamentary/hamburg"
     path2= "/media/leon/GameSSD/parlamentary/hamburg"
     drver_path = "/usr/local/bin/chromedriver"
-    bayern_crawler()
+    sachsen_anhalt_crawler(save_path="/media/leon/GameSSD/parlamentary/sachsen_anhalt", chrome_driver=drver_path)
