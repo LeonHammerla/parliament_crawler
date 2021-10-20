@@ -810,8 +810,23 @@ def bayern_crawler(make_directories:bool = True,
 
 
 def sachsen_anhalt_crawler(make_directories:bool = True,
-                   save_path: str = "/vol/s5935481/parlamentary/bayern",
-                   chrome_driver: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver"):
+                   save_path: str = "/vol/s5935481/parlamentary/sachsen_anhalt",
+                   chrome_driver: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver",
+                   load_checkpoint : bool = True):
+
+    if make_directories:
+        try:
+            pathlib.Path(save_path).mkdir(parents=True, exist_ok=False)
+        except:
+            print(save_path + "/pdf" + " already exists...")
+        try:
+            pathlib.Path(save_path + "/pdf").mkdir(parents=True, exist_ok=False)
+        except:
+            print(save_path + " already exists...")
+        try:
+            pathlib.Path(save_path + "/txt").mkdir(parents=True, exist_ok=False)
+        except:
+            print(save_path + "/txt" + " already exists...")
 
     chrome_options = Options()
     #chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -820,44 +835,97 @@ def sachsen_anhalt_crawler(make_directories:bool = True,
     chrome_options.add_argument("window-size=1920,1080")
     chrome_options.add_argument("--dns-prefetch-disable")
 
-    #chrome_options.headless = True
+    chrome_options.headless = True
     chrome_options.add_argument("--enable-javascript")
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
+
     url = "https://padoka.landtag.sachsen-anhalt.de/portala/browse.tt.html"
     driver = webdriver.Chrome(chrome_driver, options=chrome_options)
-
     driver.get(url)
     wait = WebDriverWait(driver, 10)
     document_select = driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[1]/div/div/div/nav/a[2]")
     document_select.click()
-
-
-    #button = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[2]/div/div/div[2]/button")))
-    #button.click()
     time.sleep(1)
     more_option_button = driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[2]/div/div/div[2]/button")
     more_option_button.click()
     time.sleep(1)
-
     document_type = Select(driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[4]/div/div/div[1]/div/div[1]/div/div/select"))
     document_type.select_by_visible_text("Plenarprotokoll")
     time.sleep(1)
-    #select_election_period = driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[5]/div[2]/div/div[1]/div/div[2]/span/div/ul/li[1]/a/label/input")
     select_election_period = Select(driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[5]/div[2]/div/div[1]/div/div[2]/span/select"))
-    print([i.text for i in select_election_period.options])
-    print([i.text for i in select_election_period.all_selected_options])
-    for i in select_election_period.options:
-        select_election_period.select_by_visible_text(i.text)
-    print("===")
-    print([i.text for i in select_election_period.all_selected_options])
-    time.sleep(1)
-    confirm = driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[2]/div/div/div[3]/button")
-    confirm.click()
-    time.sleep(10)
-
-    time.sleep(300)
+    select_election_period_options = [i.text for i in list(reversed(select_election_period.options))]
     driver.quit()
+    for period in select_election_period_options:
+
+        if os.path.isdir(save_path + "/pdf/" + period) and load_checkpoint:
+            print("{} already downloaded".format(period))
+        else:
+            if make_directories:
+                try:
+                    pathlib.Path(save_path + "/pdf/" + period).mkdir(parents=True, exist_ok=False)
+                    pathlib.Path(save_path + "/txt/" + period).mkdir(parents=True, exist_ok=False)
+                except:
+                    print(save_path + " already exists...")
+
+            driver = webdriver.Chrome(chrome_driver, options=chrome_options)
+            driver.get(url)
+            wait = WebDriverWait(driver, 10)
+            document_select = driver.find_element_by_xpath(
+                "/html/body/main/div[1]/div/div/div/div/div/div[1]/div/div/div/nav/a[2]")
+            document_select.click()
+            time.sleep(1)
+            more_option_button = driver.find_element_by_xpath(
+                "/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[2]/div/div/div[2]/button")
+            more_option_button.click()
+            time.sleep(1)
+            document_type = Select(driver.find_element_by_xpath(
+                "/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[4]/div/div/div[1]/div/div[1]/div/div/select"))
+            document_type.select_by_visible_text("Plenarprotokoll")
+            time.sleep(1)
+            select_election_period = Select(driver.find_element_by_xpath(
+                "/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[5]/div[2]/div/div[1]/div/div[2]/span/select"))
+
+
+            select_election_period.deselect_all()
+            select_election_period.select_by_visible_text(period)
+            time.sleep(1)
+            confirm = driver.find_element_by_xpath("/html/body/main/div[1]/div/div/div/div/div/div[2]/div[2]/form/fieldset/div/div[2]/div/div/div[3]/button")
+            confirm.click()
+            time.sleep(20)
+            #driver.find_element_by_xpath("/html/body/main/div[2]/div[2]/div/div/div[1]/div[2]/div[2]/div/div/div/div[4]/div/div[2]/span/div/button").submit()
+            #documents_per_page = Select(driver.find_element_by_xpath("/html/body/main/div[2]/div[2]/div/div/div[1]/div[2]/div[2]/div/div/div/div[4]/div/div[2]/span/select"))
+            #documents_per_page.select_by_visible_text("100 Treffer pro Seite")
+            Select(WebDriverWait(driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, "/html/body/main/div[2]/div[2]/div/div/div[1]/div[2]/div[2]/div/div/div/div[4]/div/div[2]/span/select")))).select_by_value(
+                "0")
+            time.sleep(10)
+            #result_list = driver.find_element_by_id("results-container")
+            #result_elements = result_list.find_elements_by_xpath("//a[@class='btn btn-white btn-sm btn-spacing']")
+            all_links = set()
+            result_elements = driver.find_elements_by_xpath("//a[@class='btn btn-white btn-sm btn-spacing']")
+            for res_elem in result_elements:
+                link = res_elem.get_attribute("href")
+                if "/plenum/" in link:
+                    all_links.add(link)
+
+            driver.quit()
+            all_links = list(all_links)
+            print("Found {} plenumprotokoll-links".format(len(all_links)))
+            fails = 0
+            for download_link in tqdm(all_links, desc="Downloading {}".format(period)):
+                response = requests.get(download_link)
+                file_name = save_path + "/pdf/" + period + "/" + download_link.split("/")[-1]
+                try:
+                    with open(file_name, 'wb') as f:
+                        f.write(response.content)
+                except Exception as e:
+                    fails += 1
+            print("Downloaded {} PDF's, failed with {} PDF's".format(len(all_links) - fails, fails))
+
+
+
+
 
 
 
@@ -881,4 +949,5 @@ if __name__ == "__main__":
     path = "/vol/team/hammerla/parlamentary/hamburg"
     path2= "/media/leon/GameSSD/parlamentary/hamburg"
     drver_path = "/usr/local/bin/chromedriver"
-    sachsen_anhalt_crawler(save_path="/media/leon/GameSSD/parlamentary/sachsen_anhalt", chrome_driver=drver_path)
+    #sachsen_anhalt_crawler(save_path="/media/leon/GameSSD/parlamentary/sachsen_anhalt", chrome_driver=drver_path)
+    sachsen_anhalt_crawler()
