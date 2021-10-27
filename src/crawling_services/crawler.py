@@ -950,4 +950,4 @@ if __name__ == "__main__":
     path2= "/media/leon/GameSSD/parlamentary/hamburg"
     drver_path = "/usr/local/bin/chromedriver"
     #sachsen_anhalt_crawler(save_path="/media/leon/GameSSD/parlamentary/sachsen_anhalt", chrome_driver=drver_path)
-    sachsen_anhalt_crawler()
+    #sachsen_anhalt_crawler()
