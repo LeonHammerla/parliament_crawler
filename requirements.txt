@@ -5,3 +5,4 @@ selenium
 tqdm
 textract
 xmi-reader
+dkpro-cassis
