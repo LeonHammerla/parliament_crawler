@@ -48,18 +48,29 @@ class Reichtags_Handle:
         root = tree.getroot()
         for ocr_page in root[1]:
             page = ""
+            block_count = 0
+            max_block_count = len([1 for var_x in ocr_page])
             for ocrx_block in ocr_page:
+                block = ""
+                line_count = 0
                 for ocr_par in ocrx_block:
                     para = ""
                     for ocr_line in ocr_par:
+                        line_count += 1
                         line = ""
                         for ocr_word in ocr_line:
                             word_text = ocr_word.text
                             if word_text != None:
                                 line += word_text + " "
                         para += line.strip() + "\n"
-                    page += para.strip() + "\n\n"
-            text += page.strip() + "\n\n\n"
+                    block += para.strip() + "\n\n"
+                if (block_count in [0, 1]) and (line_count < 2):
+                    pass
+                elif (block_count == max_block_count - 1) and (line_count < 2):
+                    pass
+                else:
+                    page += block.strip() + "\n\n\n"
+            text += page.strip() + "\n\n\n\n"
 
         return text.strip()
 
