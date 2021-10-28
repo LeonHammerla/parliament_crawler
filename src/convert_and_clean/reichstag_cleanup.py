@@ -76,6 +76,7 @@ class Reichtags_Handle:
 
     @staticmethod
     def mp_parse_job(directory, save_path):
+        fails = []
         year, ep, year2 = directory.split("/")[-3:]
         try:
             pathlib.Path(os.path.join(save_path, year, ep, year2)).mkdir(parents=True, exist_ok=False)
@@ -111,10 +112,11 @@ class Reichtags_Handle:
                     text += Reichtags_Handle.parse_ocr_xml(file_path) + "\n\n\n"
                 except:
                     print("{} failed".format(file_path))
+                    fails.append(file_path)
             text = text.strip()
             with open(os.path.join(save_path, year, ep, year2, all_pages[0].split("_")[0] + ".txt"), "w") as f:
                 f.write(text)
-        return True
+        return fails
 
 
     @staticmethod
@@ -151,6 +153,13 @@ class Reichtags_Handle:
             pool.close()
             pool.join()
             # pool.terminate()
+            fails = []
+            for fail_list in result:
+                for fail in fail_list:
+                    fails.append(fail)
+            with open(save_path + "/fails.txt", "w") as f:
+                for fail in fails:
+                    f.write(fail + "\n")
 
         return
 
