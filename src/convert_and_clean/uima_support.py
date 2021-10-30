@@ -6,26 +6,48 @@ import time
 import os
 from functools import partial
 from tqdm import tqdm
-
-
-
+import re
+import codecs
+import traceback
 
 # path of the corpus where all xmi files are stored
 XMI_CORPUS_PATH = "/vol/s5935481/parlamentary_xmi_corpus"
 # dictionary with identifiers for the different parliaments
 MASK = {
-        "Reichstag": {"landtag":"Reichstag",
-                      "origin_path":"/resources/corpora/parlamentary",
-                      "user1":"abrami",
-                      "user2":"hammerla",
-                      "quelle":"BSB-Bayerische Staatsbibliothek",
-                      "date_func": (lambda file_path: file_path.strip(".txt").split(" ")[-1]),
-                      "subtitle": (lambda file_path: file_path.split("/")[-3].replace(" ", "") + "__" + "".join(file_path.split("/")[-1].split(" ")[0:2])),
-                      "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "reichstag", "/".join(file_path.split("/")[4:-1]))))
-                      }
+        "Reichstag":    {"landtag":"Reichstag",
+                        "origin_path":"/resources/corpora/parlamentary",
+                        "user1":"abrami",
+                        "user2":"hammerla",
+                        "quelle":"BSB-Bayerische Staatsbibliothek",
+                        "date_func": (lambda file_path: file_path.strip(".txt").split(" ")[-1]),
+                        "subtitle": (lambda file_path: file_path.split("/")[-3].replace(" ", "") + "__" + "".join(file_path.split("/")[-1].split(" ")[0:2])),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "reichstag", "/".join(file_path.split("/")[4:-1])))),
+                        "dir_path" : "/vol/s5935481/parlamentary_reichstag_text",
+                        "filter": False
+                        },
+        "Hamburg":      {"landtag":"Hamburgische-Bürgerschaft",
+                        "origin_path":"/vol/s5935481/parlamentary/hamburg/pdf",
+                        "user1":"hammerla",
+                        "user2":"hammerla",
+                        "quelle":"hamburgische Bürgerschaftskanzlei",
+                        "date_func": (lambda file_path: date_hamburg(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-1].split("_")[1] + ".Wahlperiode__" + file_path.split("/")[-1].strip(".txt").split("_")[2] + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "hamburg", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/vol/s5935481/parlamentary/hamburg/txt",
+                        "filter":True
+                        }
 
     }
 
+def valid_xml_char_ordinal(c):
+    codepoint = ord(c)
+    # conditions ordered by presumed frequency
+    return (
+        0x20 <= codepoint <= 0xD7FF or
+        codepoint in (0x9, 0xA, 0xD) or
+        0xE000 <= codepoint <= 0xFFFD or
+        0x10000 <= codepoint <= 0x10FFFF
+        )
 
 def create_dirs(dir_path:str):
     """
@@ -44,14 +66,31 @@ def current_milli_time():
     """
     return round(time.time() * 1000)
 
-
+def date_hamburg(filepath:str):
+    pattern1 = re.compile("([0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9][0-9][0-9]|[0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9])")
+    pattern2 = re.compile("[0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9]")
+    with open(filepath, "r") as f:
+        for line in f:
+            line = line.replace(" ", "")
+            line = line.strip()
+            z = re.match(pattern1, line)
+            if z:
+                zz = re.match(pattern2, line)
+                if zz:
+                    if int(line[-2:]) < 40:
+                        line = line[:6] + "20" + line[-2:]
+                    else:
+                        line = line[:6] + "19" + line[-2:]
+                else:
+                    pass
+                return line
 
 
 
 def save_txt_as_xmi(txt_path:str, landtag:str, datum: str,
                     typesystem:cassis.TypeSystem, user1:str, user2:str,
                     origin_path:str, quelle:str, subtilte_protocol:str,
-                    save_path:str):
+                    save_path:str, mask_key:str):
     """
     landtag: parliament of the given protocol
     datum: date of the protocol with style: DD.MM.YYYY
@@ -62,8 +101,10 @@ def save_txt_as_xmi(txt_path:str, landtag:str, datum: str,
     :param typesystem:
     :return:
     """
-    with open(txt_path, "r") as f:
+    with codecs.open(txt_path, "r", "utf-8") as f:
         text = f.read()
+    if MASK[mask_key]["filter"]:
+        text = ''.join(c for c in text if valid_xml_char_ordinal(c))
     cas = cassis.Cas(typesystem=typesystem)
 
     cas.sofa_string = text
@@ -119,8 +160,10 @@ def save_directory_as_xmi(dir_path:str, mask_key:str, typesystem:str):
     files = [os.path.join(dir_path, file) for file in os.listdir(dir_path)]
     files = [file for file in files if os.path.isfile(file)]
     fails = []
+    exceptions = set()
     for file in files:
-        save_path = MASK[mask_key]["save_path"]
+        save_path = MASK[mask_key]["save_path"](file)
+
         try:
             save_txt_as_xmi(
                             txt_path=file,
@@ -132,13 +175,32 @@ def save_directory_as_xmi(dir_path:str, mask_key:str, typesystem:str):
                             origin_path=MASK[mask_key]["origin_path"],
                             quelle=MASK[mask_key]["quelle"],
                             subtilte_protocol=MASK[mask_key]["subtitle"](file),
-                            save_path=save_path
+                            save_path=save_path,
+                            mask_key = mask_key
                             )
-        except:
+        except Exception as e:
             fails.append(file)
-    return fails
+            exceptions.add(traceback.format_exc())
+        """
+        save_txt_as_xmi(
+            txt_path=file,
+            landtag=MASK[mask_key]["landtag"],
+            datum=MASK[mask_key]["date_func"](file),
+            typesystem=typesystem,
+            user1=MASK[mask_key]["user1"],
+            user2=MASK[mask_key]["user2"],
+            origin_path=MASK[mask_key]["origin_path"],
+            quelle=MASK[mask_key]["quelle"],
+            subtilte_protocol=MASK[mask_key]["subtitle"](file),
+            save_path=save_path,
+            mask_key=mask_key
+        )
+        """
+    return [fails, exceptions]
 
-def parse_and_save_whole_corpus(dir_path:str, mask_key:str, typesystem:str):
+
+def parse_and_save_whole_corpus(mask_key:str, typesystem:str):
+    dir_path = MASK[mask_key]["dir_path"]
     part_func = partial(save_directory_as_xmi, mask_key=mask_key, typesystem=typesystem)
     dir_stack = [os.path.join(dir_path, file) for file in os.listdir(dir_path)]
     dir_stack = [file_path for file_path in dir_stack if os.path.isdir(file_path)]
@@ -166,18 +228,26 @@ def parse_and_save_whole_corpus(dir_path:str, mask_key:str, typesystem:str):
     pool.close()
     pool.join()
     fails = []
+    exceptions = []
     for fail_list in result:
-        for fail in fail_list:
+        for fail in fail_list[0]:
             fails.append(fail)
-    for fail in fails:
+        for exception in fail_list[-1]:
+            exceptions.append(exception)
+
+    for fail in list(set(fails)):
         print(fail + "\n")
+
+    for exception in list(set(exceptions)):
+        print(exception)
+        print("\n")
+    print(len(fails))
     return
 
 
 def main():
     typesystem = '/home/s5935481/work4/parliament_crawler/src/convert_and_clean/TypeSystem.xml'
-    dir_path = "/vol/s5935481/parlamentary_reichstag_text"
-    parse_and_save_whole_corpus(dir_path, "Reichstag", typesystem)
+    parse_and_save_whole_corpus("Hamburg", typesystem)
 
 if __name__ == "__main__":
     main()
