@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 from multiprocessing import Pool
 from functools import partial
 
+
 class Reichtags_Handle:
 
     def __init__(self):

@@ -95,7 +95,7 @@ def image_to_text(output_path:str, pdf_path:str, filelimit:int, lang:str) -> Non
 
     return
 
-def scanned_pdf_to_text(pdf_path:str, dpi:int=200, lang:str="deu") -> None:
+def scanned_pdf_to_text(pdf_path:str, dpi:int=200, lang:str="deu") -> bool:
     """
      Quelle:                        https://www.geeksforgeeks.org/python-reading-contents-of-pdf-using-ocr-optical-character-recognition/ +
                                     https://gitlab.texttechnologylab.org/Bagci/scannedpdftotext
@@ -124,7 +124,7 @@ def scan_dir_to_text(dir_path:str, dpi:int=200, lang:str="deu"):
     :return:
     """
     part_func = partial(scanned_pdf_to_text, dpi=dpi, lang=lang)
-    pool = Pool(28)
+    pool = Pool(6)
     files = [os.path.join(dir_path, file) for file in os.listdir(dir_path)]
     result = list(tqdm(pool.imap_unordered(part_func, files),
                        desc=f"Converting files from: {dir_path.split('/')[-1]}"))
