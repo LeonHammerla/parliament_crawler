@@ -35,6 +35,39 @@ MASK = {
                         "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "hamburg", "/".join(file_path.split("/")[-2:-1])))),
                         "dir_path": "/vol/s5935481/parlamentary/hamburg/txt",
                         "filter":True
+                        },
+        "Bayern":       {"landtag":"Bayerische-Landtag",
+                        "origin_path":"/vol/s5935481/parlamentary/bayern/pdf",
+                        "user1":"hammerla",
+                        "user2":"hammerla",
+                        "quelle":"Bayerische-Landtag",
+                        "date_func": (lambda file_path: file_path.split("/")[-1].replace("Seitenaus", "")[5:7] + "." + file_path.split("/")[-1].replace("Seitenaus", "")[7:9] + ".20" + file_path.split("/")[-1].replace("Seitenaus", "")[9:11] if int(file_path.split("/")[-1].replace("Seitenaus", "")[9:11]) < 30 else file_path.split("/")[-1].replace("Seitenaus", "")[5:7] + "." + file_path.split("/")[-1].replace("Seitenaus", "")[7:9] + ".19" + file_path.split("/")[-1].replace("Seitenaus", "")[9:11]),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2].split(".")[0] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].replace("Seitenaus", "")[:3])) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "bayern", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/vol/s5935481/parlamentary/bayern/txt",
+                        "filter":True
+                        },
+        "Sachsen_Anht": {"landtag":"Landtag-von-Sachsen-Anhalt",
+                        "origin_path":"/vol/s5935481/parlamentary/sachsen_anhalt/pdf",
+                        "user1":"hammerla",
+                        "user2":"hammerla",
+                        "quelle":"Landtag-von-Sachsen-Anhalt",
+                        "date_func": (lambda file_path: date_sachsen_anhalt(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2].split(" ")[0] + ".Wahlperiode__" + str(int(file_path.split("/")[-1][:3])) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "sachsen_anhalt", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/vol/s5935481/parlamentary/sachsen_anhalt/txt",
+                        "filter":True
+                        },
+        "Brandenburg":  {"landtag":"Landtag-Brandenburg",
+                        "origin_path":"/vol/s5935481/parlamentary/brandenburg/3. Wahlperiode (29.09.1999 - 13.10.2004)/pdf",
+                        "user1":"hammerla",
+                        "user2":"hammerla",
+                        "quelle":"Brandenburgischer-IT-Dienstleister",
+                        "date_func": (lambda file_path: date_brandenburg(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2].split(".")[0] + ".Wahlperiode__" + file_path.split("/")[-1].strip(".txt").split("_")[-1] + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "brandenburg", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/vol/s5935481/parlamentary/brandenburg/txt",
+                        "filter":True
                         }
 
     }
@@ -67,6 +100,11 @@ def current_milli_time():
     return round(time.time() * 1000)
 
 def date_hamburg(filepath:str):
+    """
+    Function to get the date for a document from hamburg corpus.
+    :param filepath:
+    :return:
+    """
     pattern1 = re.compile("([0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9][0-9][0-9]|[0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9])")
     pattern2 = re.compile("[0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9]")
     with open(filepath, "r") as f:
@@ -85,6 +123,55 @@ def date_hamburg(filepath:str):
                     pass
                 return line
 
+def date_sachsen_anhalt(filepath:str):
+    """
+    Function to get the date for a document from sachsen_anhalt corpus.
+    :param filepath:
+    :return:
+    """
+    pattern = re.compile("[0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9][0-9][0-9]")
+    with open(filepath, "r") as f:
+        for line in f:
+            line = line.replace(" ", "")
+            line = line.strip()
+            z = re.match(pattern, line)
+            if z:
+                return line
+
+
+def date_brandenburg(file_path:str):
+    """
+    Function to get the date for a document from brandenburg corpus.
+    :param filepath:
+    :return:
+    """
+    months = [
+        (1, 'Januar'),
+        (2, 'Februar'),
+        (3, 'März'),
+        (4, 'April'),
+        (5, 'Mai'),
+        (6, 'Juni'),
+        (7, 'Juli'),
+        (8, 'August'),
+        (9, 'September'),
+        (10, 'Oktober'),
+        (11, 'November'),
+        (12, 'Dezember'),
+    ]
+    with open(file_path, "r") as f:
+        for line in f:
+            for month in months:
+                if month[-1] in line:
+                    try:
+                        day, year = line.split(month[-1])
+                        day, year = day.strip(), year.strip()
+                        day = day.split(" ")[-1].strip(".")[-2:]
+                        final_date = day + "." + str(month[0]) + "." + year[:4]
+                        date_time_obj = datetime.strptime(final_date, '%d.%m.%Y')
+                        return final_date
+                    except:
+                        pass
 
 
 def save_txt_as_xmi(txt_path:str, landtag:str, datum: str,
@@ -247,7 +334,7 @@ def parse_and_save_whole_corpus(mask_key:str, typesystem:str):
 
 def main():
     typesystem = '/home/s5935481/work4/parliament_crawler/src/convert_and_clean/TypeSystem.xml'
-    parse_and_save_whole_corpus("Hamburg", typesystem)
+    parse_and_save_whole_corpus("Brandenburg", typesystem)
 
 if __name__ == "__main__":
     main()

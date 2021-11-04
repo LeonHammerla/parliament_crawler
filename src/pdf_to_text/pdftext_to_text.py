@@ -92,4 +92,4 @@ def dir_of_subdirs_to_txt(dir_path:str, forbidden_dirs:Union[list, None]) -> Non
 
 
 if __name__ == "__main__":
-    dir_of_subdirs_to_txt("/vol/s5935481/parlamentary/bayern/pdf", ["/vol/s5935481/parlamentary/bayern/pdf/1. Wahlperiode (1946-1950)"])
+    dir_of_subdirs_to_txt("/vol/s5935481/parlamentary/sachsen_anhalt/pdf", None)
