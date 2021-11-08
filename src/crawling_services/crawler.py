@@ -26,6 +26,11 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 
 def get_links(page_url):
+    """
+    get all links on webpage.
+    :param page_url:
+    :return:
+    """
     pages = set()
     pattern = re.compile("^(/)")
     html = requests.get(page_url).text  # fstrings require Python 3.6+
