@@ -11,7 +11,7 @@ import codecs
 import traceback
 
 # path of the corpus where all xmi files are stored
-XMI_CORPUS_PATH = "/vol/s5935481/parlamentary_xmi_corpus"
+XMI_CORPUS_PATH = "/resources/corpora/parlamentary_germany"
 # dictionary with identifiers for the different parliaments
 MASK = {
         "Reichstag":    {"landtag":"Reichstag",
@@ -67,6 +67,28 @@ MASK = {
                         "subtitle": (lambda file_path: file_path.split("/")[-2].split(".")[0] + ".Wahlperiode__" + file_path.split("/")[-1].strip(".txt").split("_")[-1] + ".Sitzung"),
                         "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "brandenburg", "/".join(file_path.split("/")[-2:-1])))),
                         "dir_path": "/vol/s5935481/parlamentary/brandenburg/txt",
+                        "filter":True
+                        },
+        "Berlin":       {"landtag":"Abgeordnetenhaus Berlin",
+                        "origin_path":"/resources/corpora/parlamentary_germany/Berlin/pdf",
+                        "user1":"abrami",
+                        "user2":"hammerla",
+                        "quelle":"Abgeordnetenhaus Berlin",
+                        "date_func": (lambda file_path: date_berlin(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-1].split("_")[0] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].strip(".txt").split("_")[-1])) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Berlin/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/Berlin/txt",
+                        "filter":True
+                        },
+        "Bremen":       {"landtag":"Bremische Bürgerschaft",
+                        "origin_path":"/resources/corpora/parlamentary_germany/Bremen/pdf",
+                        "user1":"abrami",
+                        "user2":"hammerla",
+                        "quelle":"Parlamentsdokumentation-Bremische Bürgerschaft",
+                        "date_func": (lambda file_path: date_hamburg(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].strip(".txt")[-4:])) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Bremen/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/Bremen/txt",
                         "filter":True
                         }
 
@@ -172,6 +194,41 @@ def date_brandenburg(file_path:str):
                         return final_date
                     except:
                         pass
+
+def date_berlin(file_path:str):
+    """
+    Function to get the date for a document from brandenburg corpus.
+    :param filepath:
+    :return:
+    """
+    months = [
+        (1, 'Januar'),
+        (2, 'Februar'),
+        (3, 'März'),
+        (4, 'April'),
+        (5, 'Mai'),
+        (6, 'Juni'),
+        (7, 'Juli'),
+        (8, 'August'),
+        (9, 'September'),
+        (10, 'Oktober'),
+        (11, 'November'),
+        (12, 'Dezember'),
+    ]
+    with open(file_path, "r") as f:
+        for line in f:
+            for month in months:
+                if month[-1] in line:
+                    try:
+                        day, year = line.split(month[-1])
+                        day, year = day.strip(), year.strip()
+                        day = day.split(" ")[-1].strip(".")[-2:].strip()
+                        final_date = day + "." + str(month[0]) + "." + year[:4]
+                        date_time_obj = datetime.strptime(final_date, '%d.%m.%Y')
+                        return final_date
+                    except:
+                        pass
+
 
 
 def save_txt_as_xmi(txt_path:str, landtag:str, datum: str,
@@ -334,7 +391,7 @@ def parse_and_save_whole_corpus(mask_key:str, typesystem:str):
 
 def main():
     typesystem = '/home/s5935481/work4/parliament_crawler/src/convert_and_clean/TypeSystem.xml'
-    parse_and_save_whole_corpus("Brandenburg", typesystem)
+    parse_and_save_whole_corpus("Bremen", typesystem)
 
 if __name__ == "__main__":
     main()

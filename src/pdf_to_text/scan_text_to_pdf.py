@@ -111,7 +111,8 @@ def scanned_pdf_to_text(pdf_path:str, dpi:int=200, lang:str="deu") -> bool:
         counter, output_path = pdf_to_image(pdf_path, dpi)
         image_to_text(output_path, pdf_path, counter, lang)
         success = True
-    except:
+    except Exception as e:
+        print(e)
         success = False
     return success
 
@@ -138,7 +139,24 @@ def scan_dir_to_text(dir_path:str, dpi:int=200, lang:str="deu"):
             fails += 1
     print(f"successes: {successes}, fails: {fails}")
 
+
+
+def clean_directory(dir_path:str):
+    """
+    Function to clean directory from image_safe subdirectories, if
+    programm fails and leaves them behind...
+    :param dir_path:
+    :return:
+    """
+    import os
+    import shutil
+    files = [os.path.join(dir_path, file) for file in os.listdir(dir_path)]
+    for file in files:
+        if "image_safe" in file:
+            shutil.rmtree(file)
+
+
 if __name__ == "__main__":
     # define Parameter
-    input_dir = "/vol/s5935481/parlamentary/bayern/pdf/1. Wahlperiode (1946-1950)"
+    input_dir = "/resources/corpora/parlamentary_germany/Bremen/pdf/14"
     scan_dir_to_text(input_dir)

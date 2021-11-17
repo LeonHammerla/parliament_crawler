@@ -110,4 +110,4 @@ def dir_of_subdirs_to_txt(dir_path:str, forbidden_dirs:Union[list, None]) -> Non
 if __name__ == "__main__":
     global PATH
     PATH = "/resources/corpora/parlamentary_germany"
-    dir_of_subdirs_to_txt("/resources/corpora/parlamentary_germany/Berlin/pdf", None)
+    dir_of_subdirs_to_txt("/resources/corpora/parlamentary_germany/Bremen/pdf", ["/resources/corpora/parlamentary_germany/Bremen/pdf/14"])
