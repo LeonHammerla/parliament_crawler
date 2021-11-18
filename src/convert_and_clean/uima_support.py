@@ -90,6 +90,50 @@ MASK = {
                         "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Bremen/xmi", "/".join(file_path.split("/")[-2:-1])))),
                         "dir_path": "/resources/corpora/parlamentary_germany/Bremen/txt",
                         "filter":True
+                        },
+        "Meck_Pom":     {"landtag":"Landtag Mecklenburg-Vorpommern",
+                        "origin_path":"/resources/corpora/parlamentary_germany/MeckPom/pdf",
+                        "user1":"abrami",
+                        "user2":"hammerla",
+                        "quelle":"Landtag Mecklenburg-Vorpommern",
+                        "date_func": (lambda file_path: date_sachsen_anhalt(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].rstrip(".txt").replace("Plenarprotokoll_7_",""))) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "MeckPom/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/MeckPom/txt",
+                        "filter":True
+                        },
+        "R-Pfalz":      {"landtag":"Landtag Rheinland-Pfalz",
+                        "origin_path":"/resources/corpora/parlamentary_germany/RheinlandPfalz/pdf",
+                        "user1":"abrami",
+                        "user2":"hammerla",
+                        "quelle":"Landtag Rheinland-Pfalz",
+                        "date_func": (lambda file_path: date_berlin(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].rstrip(".txt").split("-")[0])) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "RheinlandPfalz/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/RheinlandPfalz/txt",
+                        "filter":True
+                        },
+        "S-Holstein":   {"landtag":"Schleswig-holsteinischer Landtag",
+                        "origin_path":"/resources/corpora/parlamentary_germany/SchleswigHolstein/pdf",
+                        "user1":"abrami",
+                        "user2":"hammerla",
+                        "quelle":"Schleswig-holsteinischer Landtag",
+                        "date_func": (lambda file_path: date_schleswig_holstein(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].split("_")[1].split(" ")[0])) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "SchleswigHolstein/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/SchleswigHolstein/txt",
+                        "filter":True
+                        },
+        "LiechtenSt":   {"landtag":"Landtag des Fürstentums Liechtenstein",
+                        "origin_path":"/resources/corpora/parlamentary_germany/Lichtenstein/pdf",
+                        "user1":"abrami",
+                        "user2":"hammerla",
+                        "quelle":"Landtag des Fürstentums Liechtenstein",
+                        "date_func": (lambda file_path: date_liechtenstein(file_path)),
+                        "subtitle": (lambda file_path: str(wahlperiode_liechtenstein(file_path)) + ".Wahlperiode__" + str(sitzungs_nr_liechtenstein(file_path)) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Lichtenstein/xmi", str(wahlperiode_liechtenstein(file_path))))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/Lichtenstein/txt",
+                        "filter":True
                         }
 
     }
@@ -120,6 +164,64 @@ def current_milli_time():
     :return:
     """
     return round(time.time() * 1000)
+
+def date_liechtenstein(filepath:str):
+    date = filepath.split("/")[-1].rstrip(".txt").split("_")
+    return f"{date[-1]}.{date[-2]}.{date[-3]}"
+
+def wahlperiode_liechtenstein(filepath:str):
+    perioden = [("02.02.1997", "07.02.2001"),
+                ("08.02.2001", "13.03.2005"),
+                ("14.03.2005", "08.02.2009"),
+                ("09.02.2009", "03.02.2013"),
+                ("04.02.2013", "05.02.2017"),
+                ("06.02.2017", "07.02.2021"),
+                ("07.02.2021", "07.02.2025")]
+    current = datetime.strptime(date_liechtenstein(filepath), '%d.%m.%Y')
+    for i in range(0, len(perioden)):
+        start = datetime.strptime(perioden[i][0], '%d.%m.%Y')
+        end = datetime.strptime(perioden[i][-1], '%d.%m.%Y')
+        if start <= current <= end:
+            return i + 1
+        else:
+            pass
+
+def sitzungs_nr_liechtenstein(filepath:str):
+    sub_sub_dir = "/".join(filepath.split("/")[:-2])
+    sub_dirs = [os.path.join(sub_sub_dir, file) for file in os.listdir(sub_sub_dir)]
+
+    current = datetime.strptime(date_liechtenstein(filepath), '%d.%m.%Y')
+    current_wp = wahlperiode_liechtenstein(filepath)
+
+    all_dates = []
+    for sub_dir in sub_dirs:
+        files = [os.path.join(sub_dir, file) for file in os.listdir(sub_dir)]
+        try:
+            files.remove(filepath)
+        except:
+            pass
+        files_wp = []
+        for file in files:
+            if wahlperiode_liechtenstein(file) == current_wp:
+                files_wp.append(file)
+            else:
+                pass
+        other_dates = [datetime.strptime(date_liechtenstein(file), '%d.%m.%Y') for file in files_wp]
+        all_dates.extend(other_dates)
+
+    all_dates = all_dates + [current]
+
+    for i in range(0, len(all_dates)):
+        cur_date = all_dates[i]
+        j = i
+        while j > 0 and all_dates[j - 1] > cur_date:
+            all_dates[j] = all_dates[j - 1]
+            j = j - 1
+        all_dates[j] = cur_date
+    for index, item in enumerate(all_dates):
+        if item == current:
+            return index + 1
+
 
 def date_hamburg(filepath:str):
     """
@@ -158,7 +260,12 @@ def date_sachsen_anhalt(filepath:str):
             line = line.strip()
             z = re.match(pattern, line)
             if z:
-                return line
+                res = re.sub('[^\d\.]', '', line)
+                try:
+                    date_time_obj = datetime.strptime(res, '%d.%m.%Y')
+                    return res
+                except:
+                    pass
 
 
 def date_brandenburg(file_path:str):
@@ -228,6 +335,28 @@ def date_berlin(file_path:str):
                         return final_date
                     except:
                         pass
+
+
+def date_schleswig_holstein(filepath:str):
+    """
+    Function to get the date for a document from sachsen_anhalt corpus.
+    :param filepath:
+    :return:
+    """
+    pattern = re.compile("[0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9][0-9][0-9]")
+    elems = filepath.split("/")[-1].split(" ")
+    for elem in elems:
+        elem = elem.replace(" ", "")
+        elem = elem.strip()
+        z = re.match(pattern, elem)
+        if z:
+            res = re.sub('[^\d\.]', '', elem)
+            try:
+                date_time_obj = datetime.strptime(res, '%d.%m.%Y')
+                return res
+            except:
+                pass
+
 
 
 
@@ -391,7 +520,7 @@ def parse_and_save_whole_corpus(mask_key:str, typesystem:str):
 
 def main():
     typesystem = '/home/s5935481/work4/parliament_crawler/src/convert_and_clean/TypeSystem.xml'
-    parse_and_save_whole_corpus("Bremen", typesystem)
+    parse_and_save_whole_corpus("LiechtenSt", typesystem)
 
 if __name__ == "__main__":
     main()
