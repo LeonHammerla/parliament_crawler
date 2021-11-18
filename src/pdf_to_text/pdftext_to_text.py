@@ -106,8 +106,12 @@ def dir_of_subdirs_to_txt(dir_path:str, forbidden_dirs:Union[list, None]) -> Non
     print(f"Successes: {good}; fails: {bad}")
     return
 
+"""
+def convert_path(input_path:str):
+    pathlib.Path(new_path).mkdir(parents=True, exist_ok=True)
+"""
 
 if __name__ == "__main__":
     global PATH
     PATH = "/resources/corpora/parlamentary_germany"
-    dir_of_subdirs_to_txt("/resources/corpora/parlamentary_germany/Bremen/pdf", ["/resources/corpora/parlamentary_germany/Bremen/pdf/14"])
+    dir_of_subdirs_to_txt("/resources/corpora/parlamentary_germany/SchleswigHolstein/pdf", None)
