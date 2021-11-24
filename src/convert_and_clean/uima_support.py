@@ -134,9 +134,53 @@ MASK = {
                         "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Lichtenstein/xmi", str(wahlperiode_liechtenstein(file_path))))),
                         "dir_path": "/resources/corpora/parlamentary_germany/Lichtenstein/txt",
                         "filter":True
+                        },
+        "N-Sachsen":    {"landtag": "Niedersächsischer Landtag",
+                        "origin_path": "/resources/corpora/parlamentary_germany/Niedersachsen/pdf",
+                        "user1": "abrami",
+                        "user2": "hammerla",
+                        "quelle": "Niedersächsisches-Landtagsdokumentationssystem",
+                        "date_func": (lambda file_path: date_niedersachsen(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].rstrip(".txt"))) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Niedersachsen/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/Niedersachsen/txt",
+                        "filter": True
+                        },
+        "N-W-Falen":    {"landtag": "Landtag Nordrhein-Westfalen",
+                        "origin_path": "/resources/corpora/parlamentary_germany/NordrheinWestfalen/pdf",
+                        "user1": "abrami",
+                        "user2": "hammerla",
+                        "quelle": "Parlamentsdatenbank Nordrhein-Westfalen",
+                        "date_func": (lambda file_path: date_niedersachsen(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].rstrip(".txt"))) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "NordrheinWestfalen/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/NordrheinWestfalen/txt",
+                        "filter": True
+                        },
+        "Hessen":       {"landtag": "Hessischer Landtag",
+                        "origin_path": "/resources/corpora/parlamentary_germany/Hessen/pdf",
+                        "user1": "abrami",
+                        "user2": "hammerla",
+                        "quelle": "Hessischer Landtag - Landtagsinformationssystem",
+                        "date_func": (lambda file_path: date_niedersachsen(file_path)),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].rstrip(".txt"))) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Hessen/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/Hessen/txt",
+                        "filter": True
+                        },
+        "Saarland":     {"landtag": "Landtag des Saarlandes",
+                        "origin_path": "/resources/corpora/parlamentary_germany/Saarland/pdf",
+                        "user1": "abrami",
+                        "user2": "hammerla",
+                        "quelle": "Landtag des Saarlandes",
+                        "date_func": (lambda file_path: date_niedersachsen(file_path)),
+                        "subtitle": (lambda file_path: str(int(file_path.split("/")[-2])) + ".Wahlperiode__" + str(int(file_path.split("/")[-1].rstrip(".txt").split("_")[-1].split("-")[-1])) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Saarland/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/Saarland/txt",
+                        "filter": True
                         }
 
-    }
+        }
 
 def valid_xml_char_ordinal(c):
     codepoint = ord(c)
@@ -358,6 +402,40 @@ def date_schleswig_holstein(filepath:str):
                 pass
 
 
+def date_niedersachsen(file_path:str):
+    """
+    Function to get the date for a document from brandenburg corpus.
+    :param filepath:
+    :return:
+    """
+    months = [
+        (1, 'Januar'),
+        (2, 'Februar'),
+        (3, 'März'),
+        (4, 'April'),
+        (5, 'Mai'),
+        (6, 'Juni'),
+        (7, 'Juli'),
+        (8, 'August'),
+        (9, 'September'),
+        (10, 'Oktober'),
+        (11, 'November'),
+        (12, 'Dezember'),
+    ]
+    with open(file_path, "r") as f:
+        for line in f:
+            if "Ausgegeben" not in line:
+                for month in months:
+                    if month[-1] in line:
+                        try:
+                            day, year = line.split(month[-1])
+                            day, year = day.strip(), year.strip()
+                            day = day.split(" ")[-1].strip(".")[-2:].strip()
+                            final_date = day + "." + str(month[0]) + "." + year[:4]
+                            date_time_obj = datetime.strptime(final_date, '%d.%m.%Y')
+                            return final_date
+                        except:
+                            pass
 
 
 def save_txt_as_xmi(txt_path:str, landtag:str, datum: str,
@@ -520,7 +598,7 @@ def parse_and_save_whole_corpus(mask_key:str, typesystem:str):
 
 def main():
     typesystem = '/home/s5935481/work4/parliament_crawler/src/convert_and_clean/TypeSystem.xml'
-    parse_and_save_whole_corpus("LiechtenSt", typesystem)
+    parse_and_save_whole_corpus("Saarland", typesystem)
 
 if __name__ == "__main__":
     main()

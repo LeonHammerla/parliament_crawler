@@ -114,6 +114,10 @@ def convert_path(input_path:str):
 if __name__ == "__main__":
     global PATH
     PATH = "/resources/corpora/parlamentary_germany"
-    dir_of_subdirs_to_txt("/resources/corpora/parlamentary_germany/MeckPom/pdf", ["/resources/corpora/parlamentary_germany/MeckPom/pdf/1",
-                                                                                    "/resources/corpora/parlamentary_germany/MeckPom/pdf/2",
-                                                                                    "/resources/corpora/parlamentary_germany/MeckPom/pdf/3"])
+    dir_of_subdirs_to_txt("/resources/corpora/parlamentary_germany/Saarland/pdf",           [
+                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/11",
+                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/12",
+                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/13",
+                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/14",
+                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/15",
+                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/16"])
