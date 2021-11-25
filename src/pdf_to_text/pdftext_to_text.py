@@ -114,10 +114,15 @@ def convert_path(input_path:str):
 if __name__ == "__main__":
     global PATH
     PATH = "/resources/corpora/parlamentary_germany"
-    dir_of_subdirs_to_txt("/resources/corpora/parlamentary_germany/Saarland/pdf",           [
-                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/11",
-                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/12",
-                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/13",
-                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/14",
-                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/15",
-                                                                                             "/resources/corpora/parlamentary_germany/Saarland/pdf/16"])
+    dir_of_subdirs_to_txt("/resources/corpora/parlamentary_germany/Bundesrat/pdf",      [
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1949-1950",
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1951-1955",
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1956-1960",
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1961-1965",
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1966-1970",
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1971-1975",
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1976-1980",
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1981-1985",
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1986-1990",
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1991-1995",
+                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1996-2000"])

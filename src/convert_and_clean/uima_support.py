@@ -96,7 +96,7 @@ MASK = {
                         "user1":"abrami",
                         "user2":"hammerla",
                         "quelle":"Landtag Mecklenburg-Vorpommern",
-                        "date_func": (lambda file_path: date_sachsen_anhalt(file_path)),
+                        "date_func": (lambda file_path: date_meckpom(file_path)),
                         "subtitle": (lambda file_path: file_path.split("/")[-2] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].rstrip(".txt").replace("Plenarprotokoll_7_",""))) + ".Sitzung"),
                         "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "MeckPom/xmi", "/".join(file_path.split("/")[-2:-1])))),
                         "dir_path": "/resources/corpora/parlamentary_germany/MeckPom/txt",
@@ -178,7 +178,29 @@ MASK = {
                         "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Saarland/xmi", "/".join(file_path.split("/")[-2:-1])))),
                         "dir_path": "/resources/corpora/parlamentary_germany/Saarland/txt",
                         "filter": True
-                        }
+                        },
+        "Baden-W":      {"landtag": "Landtag von Baden-Württemberg",
+                        "origin_path": "/resources/corpora/parlamentary_germany/BadenWuertemberg/pdf",
+                        "user1": "abrami",
+                        "user2": "hammerla",
+                        "quelle": "Parlamentsinformationssystem von Baden-Württemberg",
+                        "date_func": (lambda file_path: file_path.split("/")[-1].split(" ")[2]),
+                        "subtitle": (lambda file_path: file_path.split("/")[-2] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].split(" ")[1].split("_")[-1])) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "BadenWuertemberg/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/BadenWuertemberg/txt",
+                        "filter": True
+                        },
+        "B-Rat":        {"landtag": "Deutsche Bundesrat",
+                        "origin_path": "/resources/corpora/parlamentary_germany/Bundesrat/pdf",
+                        "user1": "abrami",
+                        "user2": "hammerla",
+                        "quelle": "Dokumentations- und Informationssystem des Bundesrates",
+                        "date_func": (lambda file_path: file_path.split("/")[-1].split(" ")[-1].rstrip(".txt")),
+                        "subtitle": (lambda file_path: str(sitzungsnummer_bundesrat(file_path)) + ".Wahlperiode__" + str(int(file_path.split("/")[-1].split(" ")[1].rstrip("."))) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Bundesrat/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/Bundesrat/txt",
+                        "filter": True
+                        },
 
         }
 
@@ -437,6 +459,34 @@ def date_niedersachsen(file_path:str):
                         except:
                             pass
 
+def date_meckpom(file_path:str):
+    res = date_sachsen_anhalt(file_path)
+    if res == None:
+        return date_niedersachsen(file_path)
+    else:
+        return res
+
+def sitzungsnummer_bundesrat(file_path:str):
+    year = file_path.split("/")[-2]
+    year_dic = {
+                "1949-1950":1,
+                "1951-1955":2,
+                "1956-1960":3,
+                "1961-1965":4,
+                "1966-1970":5,
+                "1971-1975":6,
+                "1976-1980":7,
+                "1981-1985":8,
+                "1986-1990":9,
+                "1991-1995":10,
+                "1996-2000":11,
+                "2001-2005":12,
+                "2006-2010":13,
+                "2011-2015":14,
+                "2016-2020":15,
+                "2021-2025":16
+                }
+    return year_dic[year]
 
 def save_txt_as_xmi(txt_path:str, landtag:str, datum: str,
                     typesystem:cassis.TypeSystem, user1:str, user2:str,
@@ -598,7 +648,7 @@ def parse_and_save_whole_corpus(mask_key:str, typesystem:str):
 
 def main():
     typesystem = '/home/s5935481/work4/parliament_crawler/src/convert_and_clean/TypeSystem.xml'
-    parse_and_save_whole_corpus("Saarland", typesystem)
+    parse_and_save_whole_corpus("B-Rat", typesystem)
 
 if __name__ == "__main__":
     main()
