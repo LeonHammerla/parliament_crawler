@@ -206,8 +206,8 @@ MASK = {
                         "user1": "abrami",
                         "user2": "hammerla",
                         "quelle": "Open Government Data (OGD)",
-                        "date_func": (lambda file_path: file_path.split("/")[-1].split(" ")[-1].rstrip(".txt")),
-                        "subtitle": (lambda file_path: str(sitzungsnummer_bundesrat(file_path)) + ".Wahlperiode__" + str(int(file_path.split("/")[-1].split(" ")[1].rstrip("."))) + ".Sitzung"),
+                        "date_func": (lambda file_path: file_path.split("/")[-1].split("_")[0]),
+                        "subtitle": (lambda file_path: str(wahlperiode_oesterreich(file_path)) + ".Wahlperiode__" + str(int(file_path.split("/")[-1].split("_")[1].split(" ")[0].rstrip("."))) + ".Sitzung"),
                         "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Oesterreich/xmi", "/".join(file_path.split("/")[-2:-1])))),
                         "dir_path": "/resources/corpora/parlamentary_germany/Oesterreich/txt",
                         "filter": True
