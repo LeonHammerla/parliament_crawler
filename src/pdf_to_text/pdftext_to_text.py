@@ -27,8 +27,9 @@ def pdf_to_text(pdf_path:str, use_external_source:bool=True) -> bool:
             with open(os.path.join(new_path, pdf_path.split("/")[-1].replace("pdf", "txt")), "w") as f:
                 f.write(text)
             success = True
-        except:
+        except Exception as e:
             success = False
+            #print(e)
     else:
         try:
             pathlib.Path("/".join(pdf_path.split("/")[:-1])).mkdir(parents=True, exist_ok=True)
@@ -114,15 +115,4 @@ def convert_path(input_path:str):
 if __name__ == "__main__":
     global PATH
     PATH = "/resources/corpora/parlamentary_germany"
-    dir_of_subdirs_to_txt("/resources/corpora/parlamentary_germany/Bundesrat/pdf",      [
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1949-1950",
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1951-1955",
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1956-1960",
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1961-1965",
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1966-1970",
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1971-1975",
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1976-1980",
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1981-1985",
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1986-1990",
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1991-1995",
-                                                                                        "/resources/corpora/parlamentary_germany/Bundesrat/pdf/1996-2000"])
+    dir_of_subdirs_to_txt("/resources/corpora/parlamentary_germany/Thueringen/pdf", ["/resources/corpora/parlamentary_germany/Thueringen/pdf/01"])

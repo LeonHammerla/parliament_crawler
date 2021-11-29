@@ -212,6 +212,17 @@ MASK = {
                         "dir_path": "/resources/corpora/parlamentary_germany/Oesterreich/txt",
                         "filter": True
                         },
+        "Thuer":        {"landtag": "Thüringer Landtag",
+                        "origin_path": "/resources/corpora/parlamentary_germany/Thueringen/pdf",
+                        "user1": "abrami",
+                        "user2": "hammerla",
+                        "quelle": "Thüringer Landtag",
+                        "date_func": (lambda file_path: date_pfalz(file_path)),
+                        "subtitle": (lambda file_path: str(int(file_path.split("/")[-2])) + ".Wahlperiode__" + str(int(file_path.split("/")[-1].rstrip(".txt").split("_")[-1])) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Thueringen/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/Thueringen/txt",
+                        "filter": True
+                        }
 
 
         }
@@ -519,7 +530,7 @@ def sitzungsnummer_bundesrat(file_path:str):
                 }
     return year_dic[year]
 
-def wahlperiode_oesterreich(file_path:str):
+def wahlperiode_oesterreich(file_path:str) -> int:
     year_dic = {
                 "17.10.1920":1,
                 "21.10.1923":2,
@@ -558,7 +569,7 @@ def wahlperiode_oesterreich(file_path:str):
             current_wp = year_dic[example_date]
         else:
             return current_wp
-
+    return current_wp
 
 
 def save_txt_as_xmi(txt_path:str, landtag:str, datum: str,
@@ -721,7 +732,7 @@ def parse_and_save_whole_corpus(mask_key:str, typesystem:str):
 
 def main():
     typesystem = '/home/s5935481/work4/parliament_crawler/src/convert_and_clean/TypeSystem.xml'
-    parse_and_save_whole_corpus("R-Pfalz", typesystem)
+    parse_and_save_whole_corpus("Ö", typesystem)
 
 if __name__ == "__main__":
     main()
