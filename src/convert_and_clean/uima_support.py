@@ -107,7 +107,7 @@ MASK = {
                         "user1":"abrami",
                         "user2":"hammerla",
                         "quelle":"Landtag Rheinland-Pfalz",
-                        "date_func": (lambda file_path: date_berlin(file_path)),
+                        "date_func": (lambda file_path: date_pfalz(file_path)),
                         "subtitle": (lambda file_path: file_path.split("/")[-2] + ".Wahlperiode__" + str(int(file_path.split("/")[-1].rstrip(".txt").split("-")[0])) + ".Sitzung"),
                         "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "RheinlandPfalz/xmi", "/".join(file_path.split("/")[-2:-1])))),
                         "dir_path": "/resources/corpora/parlamentary_germany/RheinlandPfalz/txt",
@@ -201,6 +201,18 @@ MASK = {
                         "dir_path": "/resources/corpora/parlamentary_germany/Bundesrat/txt",
                         "filter": True
                         },
+        "Ö":            {"landtag": "Österreichische Nationalrat",
+                        "origin_path": "/resources/corpora/parlamentary_germany/Oesterreich/pdf",
+                        "user1": "abrami",
+                        "user2": "hammerla",
+                        "quelle": "Open Government Data (OGD)",
+                        "date_func": (lambda file_path: file_path.split("/")[-1].split(" ")[-1].rstrip(".txt")),
+                        "subtitle": (lambda file_path: str(sitzungsnummer_bundesrat(file_path)) + ".Wahlperiode__" + str(int(file_path.split("/")[-1].split(" ")[1].rstrip("."))) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Oesterreich/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/Oesterreich/txt",
+                        "filter": True
+                        },
+
 
         }
 
@@ -466,6 +478,25 @@ def date_meckpom(file_path:str):
     else:
         return res
 
+def date_pfalz(file_path:str):
+    res = date_berlin(file_path)
+    if res == None:
+        pattern = re.compile("[0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9][0-9][0-9]")
+        with open(file_path, "r") as f:
+            for line in f:
+                line = line.replace(" ", "")
+                line = line.strip()
+                line = re.sub('[^\d\.]', '', line)
+                z = re.match(pattern, line)
+                if z:
+                    try:
+                        date_time_obj = datetime.strptime(line, '%d.%m.%Y')
+                        return line
+                    except:
+                        pass
+    else:
+        return res
+
 def sitzungsnummer_bundesrat(file_path:str):
     year = file_path.split("/")[-2]
     year_dic = {
@@ -487,6 +518,48 @@ def sitzungsnummer_bundesrat(file_path:str):
                 "2021-2025":16
                 }
     return year_dic[year]
+
+def wahlperiode_oesterreich(file_path:str):
+    year_dic = {
+                "17.10.1920":1,
+                "21.10.1923":2,
+                "24.04.1927":3,
+                "01.11.1930":4,
+                "25.11.1945":5,
+                "09.10.1949":6,
+                "22.02.1953":7,
+                "13.05.1956":8,
+                "10.05.1959":9,
+                "18.11.1962":10,
+                "06.03.1966":11,
+                "01.03.1970":12,
+                "10.10.1971":13,
+                "05.10.1975":14,
+                "06.05.1979":15,
+                "24.04.1983":16,
+                "23.11.1986":17,
+                "07.10.1990":18,
+                "09.10.1994":19,
+                "17.12.1995":20,
+                "03.10.1999":21,
+                "24.11.2002":22,
+                "01.10.2006":23,
+                "28.09.2008":24,
+                "29.09.2013":25,
+                "15.10.2017":26,
+                "29.09.2019":27
+               }
+    file_date = file_path.split("/")[-1].split("_")[0]
+    current = datetime.strptime(file_date, '%d.%m.%Y')
+    current_wp = 0
+    for example_date in year_dic:
+        reference = datetime.strptime(example_date, '%d.%m.%Y')
+        if current >= reference:
+            current_wp = year_dic[example_date]
+        else:
+            return current_wp
+
+
 
 def save_txt_as_xmi(txt_path:str, landtag:str, datum: str,
                     typesystem:cassis.TypeSystem, user1:str, user2:str,
@@ -648,7 +721,7 @@ def parse_and_save_whole_corpus(mask_key:str, typesystem:str):
 
 def main():
     typesystem = '/home/s5935481/work4/parliament_crawler/src/convert_and_clean/TypeSystem.xml'
-    parse_and_save_whole_corpus("B-Rat", typesystem)
+    parse_and_save_whole_corpus("R-Pfalz", typesystem)
 
 if __name__ == "__main__":
     main()
