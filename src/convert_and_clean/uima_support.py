@@ -222,6 +222,17 @@ MASK = {
                         "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Thueringen/xmi", "/".join(file_path.split("/")[-2:-1])))),
                         "dir_path": "/resources/corpora/parlamentary_germany/Thueringen/txt",
                         "filter": True
+                        },
+        "Sachsen":      {"landtag": "Sächsischer Landtag",
+                        "origin_path": "/resources/corpora/parlamentary_germany/Sachsen/pdf",
+                        "user1": "abrami",
+                        "user2": "hammerla",
+                        "quelle": "Sächsischer Landtag",
+                        "date_func": (lambda file_path: date_pfalz(file_path)),
+                        "subtitle": (lambda file_path: str(int(file_path.split("/")[-2])) + ".Wahlperiode__" + str(int(file_path.split("/")[-1].rstrip(".txt"))) + ".Sitzung"),
+                        "save_path": (lambda file_path: create_dirs(os.path.join(XMI_CORPUS_PATH, "Sachsen/xmi", "/".join(file_path.split("/")[-2:-1])))),
+                        "dir_path": "/resources/corpora/parlamentary_germany/Sachsen/txt",
+                        "filter": True
                         }
 
 
@@ -732,7 +743,7 @@ def parse_and_save_whole_corpus(mask_key:str, typesystem:str):
 
 def main():
     typesystem = '/home/s5935481/work4/parliament_crawler/src/convert_and_clean/TypeSystem.xml'
-    parse_and_save_whole_corpus("Ö", typesystem)
+    parse_and_save_whole_corpus("Thuer", typesystem)
 
 if __name__ == "__main__":
     main()
