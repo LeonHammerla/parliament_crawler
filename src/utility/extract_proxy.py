@@ -1,6 +1,7 @@
 """
 https://github.com/jhnwr/rotatingproxies/blob/master/scrapeproxies.py#L13
 """
+from typing import List
 
 import requests
 from bs4 import BeautifulSoup
@@ -8,7 +9,7 @@ import random
 import concurrent.futures
 
 #get the list of free proxies
-def getProxies():
+def getProxies() -> List[str]:
     r = requests.get('https://free-proxy-list.net/')
     soup = BeautifulSoup(r.content, 'html.parser')
     table = soup.find('tbody')
@@ -20,7 +21,8 @@ def getProxies():
         else:
             pass
     return proxies
-def get_proxies2(path="/vol/s5935481/parlamentary/BIN/proxy_list2.txt"):
+
+def get_proxies2(path="/vol/s5935481/parlamentary/BIN/proxy_list2.txt") -> List[str]:
     proxies = []
     with open(path, "r") as f:
         c = 0

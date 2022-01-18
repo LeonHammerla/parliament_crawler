@@ -1,6 +1,8 @@
 import pathlib
 from datetime import datetime
 from multiprocessing import Pool
+from typing import Union, Optional, Tuple, List, Set
+
 import cassis
 import time
 import os
@@ -238,7 +240,7 @@ MASK = {
 
         }
 
-def valid_xml_char_ordinal(c):
+def valid_xml_char_ordinal(c: Union[str, bytes]) -> bool:
     codepoint = ord(c)
     # conditions ordered by presumed frequency
     return (
@@ -248,7 +250,7 @@ def valid_xml_char_ordinal(c):
         0x10000 <= codepoint <= 0x10FFFF
         )
 
-def create_dirs(dir_path:str):
+def create_dirs(dir_path: str) -> str:
     """
     Help function to create directories, if they dont exist.
     :param dir_path:
@@ -258,7 +260,7 @@ def create_dirs(dir_path:str):
     return dir_path
 
 
-def current_milli_time():
+def current_milli_time() -> Optional[int]:
     """
     returns timestamp in milliseconds.
     :return:
@@ -269,7 +271,7 @@ def date_liechtenstein(filepath:str):
     date = filepath.split("/")[-1].rstrip(".txt").split("_")
     return f"{date[-1]}.{date[-2]}.{date[-3]}"
 
-def wahlperiode_liechtenstein(filepath:str):
+def wahlperiode_liechtenstein(filepath:str) -> Optional[int]:
     perioden = [("02.02.1997", "07.02.2001"),
                 ("08.02.2001", "13.03.2005"),
                 ("14.03.2005", "08.02.2009"),
@@ -286,7 +288,7 @@ def wahlperiode_liechtenstein(filepath:str):
         else:
             pass
 
-def sitzungs_nr_liechtenstein(filepath:str):
+def sitzungs_nr_liechtenstein(filepath: str) -> Optional[int]:
     sub_sub_dir = "/".join(filepath.split("/")[:-2])
     sub_dirs = [os.path.join(sub_sub_dir, file) for file in os.listdir(sub_sub_dir)]
 
@@ -323,7 +325,7 @@ def sitzungs_nr_liechtenstein(filepath:str):
             return index + 1
 
 
-def date_hamburg(filepath:str):
+def date_hamburg(filepath:str) -> Optional[str]:
     """
     Function to get the date for a document from hamburg corpus.
     :param filepath:
@@ -347,7 +349,7 @@ def date_hamburg(filepath:str):
                     pass
                 return line
 
-def date_sachsen_anhalt(filepath:str):
+def date_sachsen_anhalt(filepath:str) -> Optional[str]:
     """
     Function to get the date for a document from sachsen_anhalt corpus.
     :param filepath:
@@ -368,7 +370,7 @@ def date_sachsen_anhalt(filepath:str):
                     pass
 
 
-def date_brandenburg(file_path:str):
+def date_brandenburg(file_path:str) -> Optional[str]:
     """
     Function to get the date for a document from brandenburg corpus.
     :param filepath:
@@ -402,7 +404,7 @@ def date_brandenburg(file_path:str):
                     except:
                         pass
 
-def date_berlin(file_path:str):
+def date_berlin(file_path:str) -> Optional[str]:
     """
     Function to get the date for a document from brandenburg corpus.
     :param filepath:
@@ -437,7 +439,7 @@ def date_berlin(file_path:str):
                         pass
 
 
-def date_schleswig_holstein(filepath:str):
+def date_schleswig_holstein(filepath:str) -> Optional[str]:
     """
     Function to get the date for a document from sachsen_anhalt corpus.
     :param filepath:
@@ -458,7 +460,7 @@ def date_schleswig_holstein(filepath:str):
                 pass
 
 
-def date_niedersachsen(file_path:str):
+def date_niedersachsen(file_path:str) -> Optional[str]:
     """
     Function to get the date for a document from brandenburg corpus.
     :param filepath:
@@ -493,14 +495,14 @@ def date_niedersachsen(file_path:str):
                         except:
                             pass
 
-def date_meckpom(file_path:str):
+def date_meckpom(file_path:str) -> Optional[str]:
     res = date_sachsen_anhalt(file_path)
     if res == None:
         return date_niedersachsen(file_path)
     else:
         return res
 
-def date_pfalz(file_path:str):
+def date_pfalz(file_path:str) -> Optional[str]:
     res = date_berlin(file_path)
     if res == None:
         pattern = re.compile("[0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9][0-9][0-9]")
@@ -519,7 +521,7 @@ def date_pfalz(file_path:str):
     else:
         return res
 
-def sitzungsnummer_bundesrat(file_path:str):
+def sitzungsnummer_bundesrat(file_path:str) -> int:
     year = file_path.split("/")[-2]
     year_dic = {
                 "1949-1950":1,
@@ -586,7 +588,7 @@ def wahlperiode_oesterreich(file_path:str) -> int:
 def save_txt_as_xmi(txt_path:str, landtag:str, datum: str,
                     typesystem:cassis.TypeSystem, user1:str, user2:str,
                     origin_path:str, quelle:str, subtilte_protocol:str,
-                    save_path:str, mask_key:str):
+                    save_path:str, mask_key:str) -> None:
     """
     landtag: parliament of the given protocol
     datum: date of the protocol with style: DD.MM.YYYY
@@ -642,7 +644,7 @@ def save_txt_as_xmi(txt_path:str, landtag:str, datum: str,
     return
 
 
-def save_directory_as_xmi(dir_path:str, mask_key:str, typesystem:str):
+def save_directory_as_xmi(dir_path:str, mask_key:str, typesystem:str) -> List[Union[List[str], Set[str]]]:
     """
     Function saves a whole directory of txt-files as xmi. it needs directory path, a typesystem for
     apache uima and a mask_key, which is ja identifier for the parliament of the given txt files.
@@ -695,7 +697,7 @@ def save_directory_as_xmi(dir_path:str, mask_key:str, typesystem:str):
     return [fails, exceptions]
 
 
-def parse_and_save_whole_corpus(mask_key:str, typesystem:str):
+def parse_and_save_whole_corpus(mask_key:str, typesystem:str) -> None:
     dir_path = MASK[mask_key]["dir_path"]
     part_func = partial(save_directory_as_xmi, mask_key=mask_key, typesystem=typesystem)
     dir_stack = [os.path.join(dir_path, file) for file in os.listdir(dir_path)]

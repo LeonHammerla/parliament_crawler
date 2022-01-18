@@ -2,3 +2,5 @@
 /src/crawling_services/google-chrome-stable_current_amd64.deb
 /src/crawling_services/google-chrome-stable_current_amd64.deb.1
 /src/utility/convert_PDF_to_pdf.py
+/src/utility/mp_util.py
+/src/utility/thueringen_testo.py

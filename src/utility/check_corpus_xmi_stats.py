@@ -12,7 +12,7 @@ import cassis
 ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
-def main(dir_path: str, safe: bool):
+def main(dir_path: str, safe: bool) -> None:
     corpus_name = dir_path.split("/")[-2]
     paths = find_paths_in_xmi_dir(dir_path)
     paths = [path for path in paths if ".xmi.gz" not in path]
@@ -46,7 +46,7 @@ def main(dir_path: str, safe: bool):
             print(i)
 
 
-def date_niedersachsen(file_path:str):
+def date_niedersachsen(file_path:str) -> None:
     """
     Function to get the date for a document from brandenburg corpus.
     :param filepath:
@@ -81,7 +81,7 @@ def date_niedersachsen(file_path:str):
                         except:
                             pass
 
-def timestamp_maker(date: str):
+def timestamp_maker(date: str) -> int:
     date_time_obj = datetime.strptime(date, '%d.%m.%Y')
     timestamp = int(datetime.timestamp(date_time_obj) * 1000)
     return timestamp

@@ -1,5 +1,7 @@
 import argparse
 import pickle
+from typing import Union, List, Tuple, Any
+
 import urllib3
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
@@ -25,7 +27,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 
 
-def get_links(page_url):
+def get_links(page_url: Union[str, bytes]) -> set:
     """
     get all links on webpage.
     :param page_url:
@@ -45,7 +47,7 @@ def get_links(page_url):
 
     return pages
 
-def test():
+def test() -> set:
     pages = set()
     from selenium import webdriver
     import time
@@ -107,7 +109,7 @@ def get_proxy_driver(proxy_ip_port: str, chrome_options: Options,
     driver = webdriver.Chrome(driver_path, options=chrome_options, desired_capabilities=capabilities)
     return driver
 
-def brandenburg_proc_mp(config: list, make_directories: bool = True):
+def brandenburg_proc_mp(config: list, make_directories: bool = True) -> List[List[Tuple[Any, Any]]]:
     """
     Function for downloading and saving (as pdf and txt) all "Plenumprotokolle" for brandenburg.
     But depricated--multiprocessing doesnt work, but single process version works fine and takes not long...
@@ -182,7 +184,7 @@ def brandenburg_proc_mp(config: list, make_directories: bool = True):
     return [file_names, file_names_failed]
 
 def brandenburg_crawler_mp(make_directories: bool = True,
-                        save_path: str = "/vol/s5935481/parlamentary/brandenburg"):
+                        save_path: str = "/vol/s5935481/parlamentary/brandenburg") -> None:
     """
     Function for downloading and saving (as pdf and txt) all "Plenumprotokolle" for brandenburg.
     But depricated--multiprocessing doesnt work, but single process version works fine and takes not long...
@@ -244,7 +246,7 @@ def brandenburg_crawler_mp(make_directories: bool = True,
     return
 
 
-def brandenburg_proc_sp(config: list, make_directories: bool = True):
+def brandenburg_proc_sp(config: list, make_directories: bool = True) -> List[List[Tuple[Any, Any]]]:
     """
      Function for downloading and saving (as pdf and txt) all "Plenumprotokolle" for brandenburg.
 
@@ -332,7 +334,7 @@ def brandenburg_proc_sp(config: list, make_directories: bool = True):
     return [file_names, file_names_failed]
 
 def brandenburg_crawler_sp(make_directories: bool = True,
-                        save_path: str = "/vol/s5935481/parlamentary/brandenburg"):
+                        save_path: str = "/vol/s5935481/parlamentary/brandenburg") -> None:
     """
     Function for downloading and saving (as pdf and txt) all "Plenumprotokolle" for brandenburg.
     :param make_directories:
@@ -392,7 +394,7 @@ def brandenburg_crawler_sp(make_directories: bool = True,
 
 
 def hamburg_crawler_depricated(make_directories:bool = True,
-                    save_path: str = "/vol/s5935481/parlamentary/hamburg"):
+                    save_path: str = "/vol/s5935481/parlamentary/hamburg") -> None:
     """
     Function for crawling plenary minutes from parliament of hamburg
     :param make_directories:
@@ -492,7 +494,7 @@ def hamburg_crawler_depricated(make_directories:bool = True,
 def hamburg_crawler(make_directories:bool = True,
                     save_path: str = "/vol/s5935481/parlamentary/hamburg",
                     driver_path: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver",
-                    proxy_path : str = "/vol/s5935481/parlamentary/BIN/proxy.txt"):
+                    proxy_path : str = "/vol/s5935481/parlamentary/BIN/proxy.txt") -> None:
     """
     Function for crawling plenary minutes from parliament of hamburg
     :param make_directories:
@@ -716,7 +718,7 @@ def hamburg_crawler(make_directories:bool = True,
 
 def bayern_crawler(make_directories:bool = True,
                    save_path: str = "/vol/s5935481/parlamentary/bayern",
-                   chrome_driver: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver"):
+                   chrome_driver: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver") -> None:
     """
 
     :param make_directories:
@@ -817,7 +819,7 @@ def bayern_crawler(make_directories:bool = True,
 def sachsen_anhalt_crawler(make_directories:bool = True,
                    save_path: str = "/vol/s5935481/parlamentary/sachsen_anhalt",
                    chrome_driver: str = "/home/stud_homes/s5935481/work4/parliament_crawler/src/crawling_services/chromedriver",
-                   load_checkpoint : bool = True):
+                   load_checkpoint : bool = True) -> None:
 
     if make_directories:
         try:

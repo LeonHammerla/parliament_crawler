@@ -116,7 +116,7 @@ def scanned_pdf_to_text(pdf_path:str, dpi:int=200, lang:str="deu") -> bool:
         success = False
     return success
 
-def scan_dir_to_text(dir_path:str, dpi:int=200, lang:str="deu"):
+def scan_dir_to_text(dir_path:str, dpi:int=200, lang:str="deu") -> None:
     """
     Function to convert whole direcotry.
     :param dir_path:
@@ -141,7 +141,7 @@ def scan_dir_to_text(dir_path:str, dpi:int=200, lang:str="deu"):
 
 
 
-def clean_directory(dir_path:str):
+def clean_directory(dir_path:str) -> None:
     """
     Function to clean directory from image_safe subdirectories, if
     programm fails and leaves them behind...

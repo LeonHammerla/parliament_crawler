@@ -1,6 +1,8 @@
 import os
 import pathlib
 import re
+from typing import List, Tuple, Union
+
 import xmi
 from tqdm import tqdm
 import xml.etree.ElementTree as ET
@@ -14,7 +16,7 @@ class Reichtags_Handle:
         self.directory_path = "/resources/corpora/parlamentary"
 
     @staticmethod
-    def list_sub_directories_and_files(directory_path):
+    def list_sub_directories_and_files(directory_path: str) -> Tuple[List[str], List[str]]:
         sub_elements = os.listdir(directory_path)
         files, dir = [], []
         for elem in sub_elements:
@@ -26,7 +28,7 @@ class Reichtags_Handle:
         return files, dir
 
     @staticmethod
-    def process_whole_directory(directory_path):
+    def process_whole_directory(directory_path: str) -> Tuple[List[str], List[str], List[str]]:
         files, directoies = Reichtags_Handle.list_sub_directories_and_files(directory_path)
         dir_stack = directoies[:]
         empty_dirs = []
@@ -43,7 +45,7 @@ class Reichtags_Handle:
         return files, directoies, empty_dirs
 
     @staticmethod
-    def parse_ocr_xml(file_path):
+    def parse_ocr_xml(file_path: str) -> str:
         text = ""
         tree = ET.parse(file_path)
         root = tree.getroot()
@@ -76,7 +78,7 @@ class Reichtags_Handle:
         return text.strip()
 
     @staticmethod
-    def mp_parse_job(directory, save_path):
+    def mp_parse_job(directory: str, save_path: str) -> List[Union[bytes, str]]:
         fails = []
         year, ep, year2 = directory.split("/")[-3:]
         try:
@@ -121,7 +123,7 @@ class Reichtags_Handle:
 
 
     @staticmethod
-    def parse_directory(directory_path, save_path):
+    def parse_directory(directory_path: str, save_path: str) -> None:
         pattern_01 = re.compile("[0-9][0-9][0-9][0-9] - [0-9][0-9][0-9][0-9]")
         main_paths = []
         for sub_dir in os.listdir(directory_path):
@@ -171,4 +173,4 @@ if __name__ == "__main__":
     for i in result[-1]:
         print(i)
     print("Dirs: {}; Files: {}".format(len(result[1]), len(result[0])))"""
-    test.parse_directory("/resources/corpora/parlamentary", "/vol/s5935481/parlamentary_reichstag_text")
+

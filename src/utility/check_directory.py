@@ -1,7 +1,7 @@
 import os
 import pickle
 
-def check_hamburg(path="/vol/s5935481/parlamentary/hamburg"):
+def check_hamburg(path="/vol/s5935481/parlamentary/hamburg") -> None:
     pdf = path + "/pdf"
     txt = path + "/txt"
     per_pdf = os.listdir(pdf)
